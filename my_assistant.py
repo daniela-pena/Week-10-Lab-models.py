@@ -5,13 +5,14 @@ HANDOFF_WORDS = ["book", "cancel", "reschedule"]
 
 
 class AppointmentHelper:
-    """A mock appointment helper. Its replies come from simple rules, not from AI."""
+    """An appointment helper. Rules handle the schedule. A model handles the rest."""
 
-    def __init__(self, name, instructions, appointment_book):
-        """Set up one helper with its own name, instructions, tool, and history."""
+    def __init__(self, name, instructions, appointment_book, model):
+        """Set up one helper with its own name, instructions, tool, model, and history."""
         self.name = name
         self.instructions = instructions
         self.appointment_book = appointment_book
+        self.model = model
         self.history = []
 
     def respond(self, user_message):
@@ -22,15 +23,20 @@ class AppointmentHelper:
         return reply
 
     def choose_reply(self, user_message):
-        """Choose a reply with keyword rules. This is the mock part."""
+        """Use a rule when one applies. Otherwise ask the model."""
         text = user_message.lower()
         if self.needs_human(text):
             return "I can't change the schedule. I'm passing you to the front desk."
         if "open" in text or "available" in text:
             return self.times_reply(user_message)
-        if "hello" in text:
-            return f"Hello! I'm {self.name}. Ask me which times are open on a day."
-        return "I'm not sure how to help with that. I can list open times."
+        return self.model_reply()
+
+    def model_reply(self):
+        """Ask the model for a reply. Give a safe answer if the model has none."""
+        reply = self.model.reply(self.instructions, self.history)
+        if reply is None:
+            return "Sorry, I can't answer that right now. Please try again in a moment."
+        return reply
 
     def needs_human(self, text):
         """Return True if the message asks to change the schedule."""

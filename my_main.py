@@ -3,6 +3,7 @@
 
 from my_assistant import AppointmentHelper
 from my_tool import AppointmentBook
+from ollama_model import OllamaModel
 
 OPEN_TIMES = {
     "monday": "9:00 am and 2:30 pm",
@@ -10,12 +11,16 @@ OPEN_TIMES = {
     "friday": "none",
 }
 
+INSTRUCTIONS = """You are Robin, an assistant for Bayside Tax Help.
+Answer in one short sentence.
+The office is at 40 Harbor Street, on the second floor.
+Bring a photo ID and last year's tax return to your appointment.
+Only state facts that appear in these instructions.
+If you do not know, say you do not know and offer to pass the client to the front desk."""
+
 appointment_book = AppointmentBook(OPEN_TIMES)
-helper = AppointmentHelper(
-    "Robin",
-    "You help clients of Bayside Tax Help find an open appointment time.",
-    appointment_book,
-)
+model = OllamaModel("granite4.1:3b")
+helper = AppointmentHelper("Robin", INSTRUCTIONS, appointment_book, model)
 
 print("Type a message, or type quit to stop.")
 user_message = input("You: ")
